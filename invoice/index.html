@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Товары в счете</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+        }
+
+        .button {
+            background-color: #ccc;
+            border: none;
+            color: #333;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .item:last-child {
+            border-bottom: none;
+        }
+
+        .total {
+            font-weight: bold;
+            margin-top: 20px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .form-group button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .split-message {
+            display: none;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .item input[type="checkbox"] {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Товары в счете</h2>
+        <button class="button" id="openModal">Добавить товар</button>
+
+        <div id="itemList">
+            <div class="item">
+                <span>Стейк Калифорния</span>
+                <span>2шт 60$</span>
+            </div>
+            <div class="item">
+                <span>Доппа</span>
+                <span>2шт 40$</span>
+            </div>
+            <div class="item">
+                <span>Медальоны в грибном соусе</span>
+                <span>1шт 35$</span>
+            </div>
+            <div class="item">
+                <span>Сырная тарелка</span>
+                <span>1шт 21$</span>
+            </div>
+            <div class="item">
+                <span>Чай в ассортименте</span>
+                <span>1шт 5$</span>
+            </div>
+            <div class="item">
+                <span>Пиво</span>
+                <span>1шт 12$</span>
+            </div>
+        </div>
+
+
+        <div class="total">ВСЕГО: <span id="totalSum">173</span>$</div>
+        <button class="button" id="splitButton">Разделить</button>
+        
+        </div>
+        
+        <div class="split-message" id="splitMessage">Выберите ваши позиции</div>
+
+        <!-- Модальное окно -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Добавить товар</h2>
+                <form id="addItemForm">
+                    <div class="form-group">
+                        <label for="itemName">Название:</label>
+                        <input type="text" id="itemName" name="itemName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="itemPrice">Стоимость:</label>
+                        <input type="number" id="itemPrice" name="itemPrice" required>
+                    </div>
+                    <button type="submit">Добавить</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const openModal = document.getElementById("openModal");
+        const modal = document.getElementById("myModal");
+        const closeModalButton = document.querySelector(".close");
+        const addItemForm = document.getElementById("addItemForm");
+        const itemList = document.getElementById("itemList");
+        const totalSumSpan = document.getElementById("totalSum");
+
+        let totalSum = 173; // Начальная сумма
+
+        openModal.addEventListener("click", () => {
+            modal.style.display = "block";
+        });
+
+        closeModalButton.addEventListener("click", closeModal);
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        addItemForm.addEventListener("submit", (event) => {
+            event.preventDefault(); // Предотвратить стандартную отправку формы
+
+            const itemName = document.getElementById("itemName").value;
+            const itemPrice = document.getElementById("itemPrice").value;
+
+            // Проверка на пустые значения
+            if (itemName && itemPrice) {
+                addItemToList(itemName, itemPrice);
+                closeModal();
+            } else {
+                alert("Пожалуйста, заполните все поля.");
+            }
+        });
+
+        function addItemToList(itemName, itemPrice) {
+            const newItem = document.createElement("div");
+            newItem.classList.add("item");
+            newItem.innerHTML = `
+                <span>${itemName}</span>
+                <span>1шт ${itemPrice}$</span>
+            `;
+            itemList.appendChild(newItem);
+
+            totalSum += parseInt(itemPrice);
+            totalSumSpan.textContent = totalSum;
+        }
+
+        function closeModal() {
+            modal.style.display = "none";
+            addItemForm.reset(); // Очистить форму
+        }
+
+        const splitButton = document.getElementById("splitButton");
+        const splitMessage = document.getElementById("splitMessage");
+
+        let splitMode = false; // Флаг для режима разделения
+
+        splitButton.addEventListener("click", () => {
+            if (!splitMode) {
+                splitMode = true;
+                splitMessage.style.display = "block";
+                // Добавляем чекбоксы к элементам списка товаров
+                const items = itemList.querySelectorAll(".item");
+                items.forEach(item => {
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    item.prepend(checkbox);
+                });
+            }
+        });
+
+        
+            console.log("Выбраны товары:", selectedItems); 
+            // ... (ваш код для обработки выбранных товаров) ...
+        itemList.appendChild(confirmButton); // Добавляем кнопку под список товаров
+    </script>
+</body>
+</html>
